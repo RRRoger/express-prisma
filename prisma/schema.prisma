@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model SysConfig {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  note      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("sys_config")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  isAdmin   Boolean  @map("is_admin") // 字段名
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 数据库表名
+  ModelDevelopers   ModelDevelopers[]
+  ModelUsers        ModelUsers[]
+  ModelLineDownload ModelLineDownload[]
+  @@map("sys_user")
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("sys_role")
+}
+
+model Model {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ModelLine       ModelLine[]
+  ModelDevelopers ModelDevelopers[]
+  ModelUsers      ModelUsers[]
+  @@map("sys_model")
+}
+
+model ModelLine {
+  id        Int      @id @default(autoincrement())
+  name      String
+  model     Model?   @relation(fields: [modelId], references: [id])
+  modelId   Int      @map("model_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("sys_model_line")
+}
+
+model ModelDevelopers {
+  modelId Int @map("model_id")
+  userId  Int @map("user_id")
+
+  model Model @relation(fields: [modelId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@id([modelId, userId])
+  @@map("sys_model_developers")
+}
+
+model ModelUsers {
+  modelId Int @map("model_id")
+  userId  Int @map("user_id")
+
+  model Model @relation(fields: [modelId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@id([modelId, userId])
+  @@map("sys_model_users")
+}
+
+model ModelLineDownload {
+  id        Int      @id @default(autoincrement())
+  ip        String
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    Int      @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  uuid      String
+}
